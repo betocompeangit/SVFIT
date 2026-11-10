@@ -3,6 +3,8 @@ import ReactDOM from 'react-dom/client'
 import { supabase } from './supabaseClient'
 import Login from './Login'
 import AdminDashboard from './AdminDashboard'
+import MemberDashboard from './MemberDashboard'
+import CoachDashboard from './CoachDashboard'
 
 function App() {
   const [session, setSession] = useState(null)
@@ -64,8 +66,8 @@ function App() {
 
       <div style={{ marginTop: '20px' }}>
         {profile?.role === 'admin' && <AdminDashboard />}
-        {profile?.role === 'coach' && <p>🏋️ <strong>Vista Coach:</strong> En el siguiente paso configuraremos la agenda y avances.</p>}
-        {profile?.role === 'member' && <p>👤 <strong>Vista Usuario:</strong> En el siguiente paso mostraremos tus visitas y vencimiento.</p>}
+        {profile?.role === 'coach' && <CoachDashboard coachId={session.user.id} />}
+        {profile?.role === 'member' && <MemberDashboard userId={session.user.id} />}
       </div>
     </div>
   )
