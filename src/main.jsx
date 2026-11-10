@@ -5,6 +5,7 @@ import Login from './Login'
 import AdminDashboard from './AdminDashboard'
 import MemberDashboard from './MemberDashboard'
 import CoachDashboard from './CoachDashboard'
+import ChangePassword from './ChangePassword'
 
 function App() {
   const [session, setSession] = useState(null)
@@ -12,14 +13,12 @@ function App() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Obtener sesión activa
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
       if (session) fetchProfile(session.user.id)
       else setLoading(false)
     })
 
-    // Escuchar cambios de autenticación
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
       if (session) fetchProfile(session.user.id)
@@ -52,10 +51,20 @@ function App() {
     return <Login onLoginSuccess={() => setLoading(true)} />
   }
 
+  // CIBERSEGURIDAD: Obligar a cambiar la contraseña si la bandera must_change_password está activa
+  if (profile?.must_change_password) {
+    return (
+      <ChangePassword 
+        userId={session.user.id} 
+        onPasswordChanged={() => fetchProfile(session.user.id)} 
+      />
+    )
+  }
+
   return (
     <div style={{ padding: '20px', fontFamily: 'sans-serif', maxWidth: '800px', margin: '0 auto' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #ccc', pb: '10px' }}>
-        <h2>SVFit - Panel General</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #ccc', paddingBottom: '10px' }}>
+        <h2>SVFit - Gestión</h2>
         <button onClick={handleLogout} style={{ padding: '8px 12px', cursor: 'pointer' }}>Cerrar Sesión</button>
       </div>
 
