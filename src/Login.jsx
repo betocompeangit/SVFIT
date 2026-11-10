@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { supabase } from './supabaseClient'
 
 export default function Login({ onLoginSuccess }) {
-  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
@@ -12,13 +12,16 @@ export default function Login({ onLoginSuccess }) {
     setLoading(true)
     setErrorMsg('')
 
+    // Transformar el usuario alfanumérico al correo interno de Supabase
+    const internalEmail = username.trim().toLowerCase() + '@svfit.local'
+
     const { data, error } = await supabase.auth.signInWithPassword({
-      email,
+      email: internalEmail,
       password,
     })
 
     if (error) {
-      setErrorMsg('Error al iniciar sesión: ' + error.message)
+      setErrorMsg('Usuario o contraseña incorrectos.')
       setLoading(false)
     } else {
       onLoginSuccess(data.user)
@@ -32,14 +35,14 @@ export default function Login({ onLoginSuccess }) {
         {errorMsg && <div style={styles.error}>{errorMsg}</div>}
         <form onSubmit={handleLogin} style={styles.form}>
           <div style={styles.inputGroup}>
-            <label>Correo Electrónico</label>
+            <label>Usuario o Matrícula</label>
             <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               required
               style={styles.input}
-              placeholder="tu@correo.com"
+              placeholder="ej. socio01 o admin"
             />
           </div>
           <div style={styles.inputGroup}>
