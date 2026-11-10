@@ -86,7 +86,7 @@ export default function AdminDashboard() {
             <input type="text" value={fullName} onChange={e => setFullName(e.target.value)} required style={styles.input} />
           </div>
           <div>
-            <label>Correo Electrónico:</label>
+            <label>Numero de Socio:</label>
             <input type="email" value={email} onChange={e => setEmail(e.target.value)} required style={styles.input} />
           </div>
           <div>
