@@ -7,7 +7,7 @@ export default function AdminDashboard() {
 
   // Campos del formulario
   const [fullName, setFullName] = useState('')
-  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('') // Número de socio o usuario alfanumérico
   const [phone, setPhone] = useState('')
   const [role, setRole] = useState('member')
   const [planName, setPlanName] = useState('Mensualidad General')
@@ -40,7 +40,6 @@ export default function AdminDashboard() {
     e.preventDefault()
     setMsg('Creando usuario...')
 
-    // Calcular fecha de vencimiento por defecto a 1 mes si no se especifica
     let finalEndDate = endDate
     if (!finalEndDate) {
       const d = new Date(startDate)
@@ -49,7 +48,7 @@ export default function AdminDashboard() {
     }
 
     const { data, error } = await supabase.rpc('create_new_user_with_profile', {
-      new_email: email,
+      new_username: username,
       new_password: 'svfit' + Math.floor(1000 + Math.random() * 9000), // Contraseña genérica inicial
       new_full_name: fullName,
       new_role: role,
@@ -63,9 +62,9 @@ export default function AdminDashboard() {
     if (error) {
       setMsg('Error: ' + error.message)
     } else {
-      setMsg('✅ Usuario registrado exitosamente')
+      setMsg('✅ Usuario/Socio registrado exitosamente')
       setFullName('')
-      setEmail('')
+      setUsername('')
       setPhone('')
       fetchMembers()
     }
@@ -75,7 +74,6 @@ export default function AdminDashboard() {
     <div style={{ marginTop: '20px' }}>
       <h3>Panel de Administración</h3>
       
-      {/* Formulario de Alta */}
       <div style={styles.card}>
         <h4>Alta de Nuevo Usuario / Socio</h4>
         {msg && <p style={{ fontWeight: 'bold', color: msg.includes('Error') ? 'red' : 'green' }}>{msg}</p>}
@@ -86,8 +84,15 @@ export default function AdminDashboard() {
             <input type="text" value={fullName} onChange={e => setFullName(e.target.value)} required style={styles.input} />
           </div>
           <div>
-            <label>Numero de Socio:</label>
-            <input type="email" value={email} onChange={e => setEmail(e.target.value)} required style={styles.input} />
+            <label>Número de Socio / Usuario:</label>
+            <input 
+              type="text" 
+              value={username} 
+              onChange={e => setUsername(e.target.value)} 
+              required 
+              style={styles.input} 
+              placeholder="ej. 1001 o coach01"
+            />
           </div>
           <div>
             <label>Teléfono:</label>
@@ -129,7 +134,6 @@ export default function AdminDashboard() {
         </form>
       </div>
 
-      {/* Listado de Socios */}
       <div style={{ marginTop: '30px' }}>
         <h4>Lista de Usuarios y Membresías</h4>
         {loading ? <p>Cargando lista...</p> : (
@@ -137,7 +141,7 @@ export default function AdminDashboard() {
             <thead>
               <tr style={{ backgroundColor: '#eaeaea', textAlign: 'left' }}>
                 <th style={styles.th}>Nombre</th>
-                <th style={styles.th}>Correo / Teléfono</th>
+                <th style={styles.th}>Usuario / Teléfono</th>
                 <th style={styles.th}>Rol</th>
                 <th style={styles.th}>Membresía</th>
                 <th style={styles.th}>Estado</th>
@@ -148,11 +152,12 @@ export default function AdminDashboard() {
               {members.map(m => {
                 const membership = m.memberships?.[0]
                 const isExpired = membership && new Date(membership.end_date) < new Date()
+                const displayUser = m.email.replace('@svfit.local', '')
                 return (
                   <tr key={m.id} style={{ borderBottom: '1px solid #ddd' }}>
                     <td style={styles.td}>{m.full_name}</td>
-                    <td style={styles.td}>{m.email}<br/><small>{m.phone || 'Sin tel'}</small></td>
-                    <td style={styles.td}><strong>{m.role}</strong></td>
+                    <td style={styles.td}><strong>{displayUser}</strong><br/><small>{m.phone || 'Sin tel'}</small></td>
+                    <td style={styles.td}>{m.role}</td>
                     <td style={styles.td}>{membership ? membership.plan_name : 'N/A'}</td>
                     <td style={styles.td}>
                       {membership ? (
