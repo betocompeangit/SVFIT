@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom/client'
 import { supabase } from './supabaseClient'
 import Login from './Login'
+import AdminDashboard from './AdminDashboard'
 
 function App() {
   const [session, setSession] = useState(null)
@@ -62,9 +63,9 @@ function App() {
       </div>
 
       <div style={{ marginTop: '20px' }}>
-        {profile?.role === 'admin' && <p>🏆 <strong>Vista Administrador:</strong> Aquí gestionarás membresías y usuarios.</p>}
-        {profile?.role === 'coach' && <p>🏋️ <strong>Vista Coach:</strong> Aquí registrarás avances y citas de tus usuarios.</p>}
-        {profile?.role === 'member' && <p>👤 <strong>Vista Usuario:</strong> Aquí verás tus días de membresía y visitas.</p>}
+        {profile?.role === 'admin' && <AdminDashboard />}
+        {profile?.role === 'coach' && <p>🏋️ <strong>Vista Coach:</strong> En el siguiente paso configuraremos la agenda y avances.</p>}
+        {profile?.role === 'member' && <p>👤 <strong>Vista Usuario:</strong> En el siguiente paso mostraremos tus visitas y vencimiento.</p>}
       </div>
     </div>
   )
