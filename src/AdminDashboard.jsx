@@ -7,7 +7,8 @@ export default function AdminDashboard() {
 
   // Campos del formulario
   const [fullName, setFullName] = useState('')
-  const [username, setUsername] = useState('') // Número de socio o usuario alfanumérico
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('123456') // Contraseña por defecto fácil
   const [phone, setPhone] = useState('')
   const [role, setRole] = useState('member')
   const [planName, setPlanName] = useState('Mensualidad General')
@@ -49,7 +50,7 @@ export default function AdminDashboard() {
 
     const { data, error } = await supabase.rpc('create_new_user_with_profile', {
       new_username: username,
-      new_password: 'svfit' + Math.floor(1000 + Math.random() * 9000), // Contraseña genérica inicial
+      new_password: password,
       new_full_name: fullName,
       new_role: role,
       new_phone: phone,
@@ -62,9 +63,10 @@ export default function AdminDashboard() {
     if (error) {
       setMsg('Error: ' + error.message)
     } else {
-      setMsg('✅ Usuario/Socio registrado exitosamente')
+      setMsg(`✅ Usuario registrado exitosamente con contraseña: ${password}`)
       setFullName('')
       setUsername('')
+      setPassword('123456')
       setPhone('')
       fetchMembers()
     }
@@ -92,6 +94,17 @@ export default function AdminDashboard() {
               required 
               style={styles.input} 
               placeholder="ej. 1001 o coach01"
+            />
+          </div>
+          <div>
+            <label>Contraseña Inicial:</label>
+            <input 
+              type="text" 
+              value={password} 
+              onChange={e => setPassword(e.target.value)} 
+              required 
+              style={styles.input} 
+              placeholder="ej. 123456"
             />
           </div>
           <div>
