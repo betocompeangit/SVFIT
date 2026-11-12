@@ -1,0 +1,23 @@
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api'
+
+export async function apiFetch(endpoint, options = {}) {
+  try {
+    const response = await fetch(`${API_URL}${endpoint}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(options.headers || {})
+      },
+      ...options
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Error en la petición al servidor.')
+    }
+
+    return data
+  } catch (err) {
+    throw err
+  }
+}
