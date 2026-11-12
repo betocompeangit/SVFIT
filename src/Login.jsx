@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { supabase } from './supabaseClient'
+import { apiFetch } from './api'
 
 export default function Login({ onLoginSuccess }) {
   const [username, setUsername] = useState('')
@@ -12,18 +12,17 @@ export default function Login({ onLoginSuccess }) {
     setLoading(true)
     setErrorMsg('')
 
-    const internalEmail = username.trim().toLowerCase() + '@svfit.local'
+    try {
+      const data = await apiFetch('/login', {
+        method: 'POST',
+        body: JSON.stringify({ username, password })
+      })
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: internalEmail,
-      password,
-    })
-
-    if (error) {
-      setErrorMsg('Credenciales incorrectas. Verifica tu número de socio o contraseña.')
+      // data contiene { success, user, profile, session }
+      onLoginSuccess(data.user, data.profile)
+    } catch (err) {
+      setErrorMsg(err.message || 'Credenciales incorrectas.')
       setLoading(false)
-    } else {
-      onLoginSuccess(data.user)
     }
   }
 
@@ -66,10 +65,6 @@ export default function Login({ onLoginSuccess }) {
             {loading ? 'Iniciando sesión...' : 'Ingresar al Sistema'}
           </button>
         </form>
-
-        <p style={styles.footerNote}>
-          ¿Olvidaste tu contraseña? Acércate a la recepción del gimnasio para su restablecimiento seguro.
-        </p>
       </div>
     </div>
   )
@@ -86,6 +81,5 @@ const styles = {
   label: { fontSize: '12px', fontWeight: '600', color: '#cbd5e1', textTransform: 'uppercase', letterSpacing: '0.5px' },
   input: { padding: '12px 14px', borderRadius: '8px', border: '1px solid #475569', backgroundColor: '#0f172a', color: '#f8fafc', fontSize: '14px', outline: 'none' },
   button: { padding: '14px', backgroundColor: '#0284c7', color: '#ffffff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '700', fontSize: '14px', marginTop: '10px' },
-  error: { backgroundColor: '#451a1a', color: '#fca5a5', padding: '12px', borderRadius: '8px', fontSize: '13px', border: '1px solid #7f1d1d', marginBottom: '15px', textAlign: 'center' },
-  footerNote: { marginTop: '24px', fontSize: '12px', color: '#64748b', textAlign: 'center', lineHeight: '1.5' }
+  error: { backgroundColor: '#451a1a', color: '#fca5a5', padding: '12px', borderRadius: '8px', fontSize: '13px', border: '1px solid #7f1d1d', marginBottom: '15px', textAlign: 'center' }
 }
