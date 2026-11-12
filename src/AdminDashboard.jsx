@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { supabase } from './supabaseClient'
+import { apiFetch } from './api'
 
 export default function AdminDashboard() {
   const [members, setMembers] = useState([])
@@ -17,23 +17,17 @@ export default function AdminDashboard() {
   const [paymentDay, setPaymentDay] = useState(5)
   const [msg, setMsg] = useState('')
 
-  // Estado para modal/acción de reset de contraseña
-  const [selectedUserForReset, setSelectedUserForReset] = useState(null)
-  const [newTempPassword, setNewTempPassword] = useState('123456')
-
   useEffect(() => {
     fetchMembers()
   }, [])
 
   const fetchMembers = async () => {
     setLoading(true)
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*, memberships(*)')
-      .order('created_at', { ascending: false })
-
-    if (!error && data) {
+    try {
+      const data = await apiFetch('/profiles')
       setMembers(data)
+    } catch (err) {
+      console.error('Error al cargar perfiles:', err.message)
     }
     setLoading(false)
   }
@@ -49,43 +43,45 @@ export default function AdminDashboard() {
       finalEndDate = d.toISOString().split('T')[0]
     }
 
-    const { data, error } = await supabase.rpc('create_new_user_with_profile', {
-      new_username: username,
-      new_password: password,
-      new_full_name: fullName,
-      new_role: role,
-      new_phone: phone,
-      plan_name: planName,
-      start_date: startDate,
-      end_date: finalEndDate,
-      payment_day: parseInt(paymentDay)
-    })
+    try {
+      await apiFetch('/users', {
+        method: 'POST',
+        body: JSON.stringify({
+          username,
+          password,
+          fullName,
+          role,
+          phone,
+          planName,
+          startDate,
+          endDate: finalEndDate,
+          paymentDay: parseInt(paymentDay)
+        })
+      })
 
-    if (error) {
-      setMsg('Error: ' + error.message)
-    } else {
       setMsg(`✅ Registrado con éxito. Contraseña inicial: ${password}`)
       setFullName('')
       setUsername('')
       setPassword('123456')
       setPhone('')
       fetchMembers()
+    } catch (err) {
+      setMsg('Error: ' + err.message)
     }
   }
 
   const handleResetPassword = async (userId, memberName) => {
-    const confirmReset = window.confirm(`¿Restablecer contraseña para ${memberName}? Se asignará "${newTempPassword}" y se le pedirá cambiarla en su siguiente acceso.`)
-    if (!confirmReset) return
+    const newTempPass = prompt(`Asignar nueva contraseña temporal para ${memberName}:`, '123456')
+    if (!newTempPass) return
 
-    const { error } = await supabase.rpc('admin_reset_member_password', {
-      target_user_id: userId,
-      new_plain_password: newTempPassword
-    })
-
-    if (error) {
-      alert('Error al restablecer: ' + error.message)
-    } else {
-      alert(`✅ Contraseña de ${memberName} restablecida a "${newTempPassword}".`)
+    try {
+      await apiFetch('/change-password', {
+        method: 'POST',
+        body: JSON.stringify({ userId, newPassword: newTempPass })
+      })
+      alert(`✅ Contraseña de ${memberName} actualizada a "${newTempPass}".`)
+    } catch (err) {
+      alert('Error al actualizar contraseña: ' + err.message)
     }
   }
 
@@ -198,9 +194,8 @@ export default function AdminDashboard() {
                         <button
                           onClick={() => handleResetPassword(m.id, m.full_name)}
                           style={styles.btnReset}
-                          title="Restablecer contraseña a 123456"
                         >
-                          🔑 Reset Clave
+                          🔑 Cambiar Clave
                         </button>
                       </td>
                     </tr>
